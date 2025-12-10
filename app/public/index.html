@@ -40,12 +40,8 @@
     }
 
     @keyframes flicker {
-        0%, 18%, 22%, 25%, 53%, 57%, 100% {
-            opacity: 1;
-        }
-        20%, 24%, 55% {
-            opacity: 0.3;
-        }
+        0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+        20%, 24%, 55% { opacity: 0.3; }
     }
 </style>
 </head>
@@ -60,21 +56,30 @@
     <div class="upside-down">The Upside Down is near...</div>
 
     <script>
-      fetch("/api/demogorgons")
-        .then(res => res.json())
-        .then(data => {
-          const box = document.getElementById("demogorgon-list");
-          box.innerHTML = "<h2>Demogorgons en la Base:</h2>";
+        async function init() {
+            try {
+                // 1️⃣ Insertar un nuevo demogorgon automáticamente
+                await fetch("/api/demogorgons", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: "Nuevo Demogorgon", level: 50 })
+                });
 
-          data.forEach(item => {
-            box.innerHTML += `
-              <p>👹 ${item.name} — Nivel ${item.level}</p>
-            `;
-          });
-        })
-        .catch(err => {
-          console.log("Error consultando API:", err);
-        });
+                // 2️⃣ Leer y mostrar todos los demogorgons
+                const res = await fetch("/api/demogorgons");
+                const data = await res.json();
+                const box = document.getElementById("demogorgon-list");
+                box.innerHTML = "<h2>Demogorgons en la Base:</h2>";
+
+                data.forEach(item => {
+                    box.innerHTML += `<p>👹 ${item.name} — Nivel ${item.level}</p>`;
+                });
+            } catch (err) {
+                console.log("Error consultando o insertando API:", err);
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
