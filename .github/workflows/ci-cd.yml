@@ -1,41 +1,59 @@
-name: CI-CD-StrangerThings
+name: CI/CD Stranger Things
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-
-  test-and-build:
+  build-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: dockerra4_db_user
+          POSTGRES_PASSWORD: tupassword
+          POSTGRES_DB: dockerra4_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dockerra4_db_user -d dockerra4_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - name: Checkout del repositorio
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Instalar Node
-        uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Instalar dependencias
-        working-directory: app
+      - name: Install dependencies
         run: npm install
 
-      - name: Ejecutar pruebas
-        working-directory: app
+      - name: Wait for Postgres
         run: |
-          echo "Simulando pruebas unitarias..."
-          echo "✔ Pruebas ejecutadas correctamente"
+          until pg_isready -h localhost -p 5432 -U dockerra4_db_user; do
+            echo "Waiting for Postgres..."
+            sleep 2
+          done
 
-      - name: Build Imagen Docker
-        run: docker build -t jaredalv7/mi-aplicacion-web:ci-latest .
+      - name: Create table demogorgons
+        run: |
+          psql postgresql://dockerra4_db_user:tupassword@localhost:5432/dockerra4_db -c "
+            CREATE TABLE IF NOT EXISTS demogorgons (
+              id SERIAL PRIMARY KEY,
+              name VARCHAR(100),
+              level INT
+            );"
 
-      - name: Login DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Run tests
+        run: npm test
 
-      - name: Push a DockerHub
-        run: docker push jaredalv7/mi-aplicacion-web:ci-latest
+      - name: Build Docker image
+        run: docker build -t jared/strangerthings:1.0 .

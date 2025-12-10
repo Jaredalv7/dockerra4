@@ -11,7 +11,7 @@ const port = process.env.PORT || 8080;
 const client = new Client({
   host: process.env.DB_HOST || "dpg-d4ssqc3e5dus73banhug-a.oregon-postgres.render.com",
   user: process.env.DB_USER || "dockerra4_db_user",
-  password: process.env.DB_PASS || "tu_contraseña_aqui", // Reemplaza con tu contraseña
+  password: process.env.DB_PASS || "vaFKcVbTSM6E144pW1jdh7ToXHWflxTG", // Reemplaza con tu contraseña
   database: process.env.DB_NAME || "dockerra4_db",
   port: process.env.DB_PORT || 5432,
   ssl: {
