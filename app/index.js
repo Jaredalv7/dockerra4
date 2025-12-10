@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const { Client } = require('pg'); // <-- PostgreSQL client
+const { Client } = require('pg'); 
 const app = express();
 
 const port = process.env.PORT || 8080;
@@ -10,13 +10,13 @@ const port = process.env.PORT || 8080;
 // ==========================
 
 const client = new Client({
-  host: process.env.DB_HOST,     // ejemplo: dpg-cxxxxx.render.com
+  host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 5432,
   ssl: {
-    rejectUnauthorized: false    // Render requiere SSL
+    rejectUnauthorized: false
   }
 });
 
@@ -24,7 +24,6 @@ client.connect()
   .then(() => console.log("✅ Conexión a PostgreSQL exitosa."))
   .catch(err => console.error("❌ Error conectando a la base de datos:", err));
 
-// Guardamos conexión en app
 app.set("db", client);
 
 // ==========================
@@ -41,6 +40,19 @@ app.get('/api/health', async (req, res) => {
     res.json({ status: 'ok', database: 'connected' });
   } catch (err) {
     res.json({ status: 'error', database: err });
+  }
+});
+
+// ==========================
+//  NUEVO ENDPOINT – Obtener datos reales
+// ==========================
+app.get("/api/demogorgons", async (req, res) => {
+  try {
+    const result = await client.query("SELECT * FROM demogorgons");
+    res.json(result.rows);
+  } catch (error) {
+    console.error("❌ Error ejecutando SELECT:", error);
+    res.status(500).json({ error: "Error consultando datos" });
   }
 });
 
