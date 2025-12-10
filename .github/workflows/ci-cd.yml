@@ -9,21 +9,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: dockerra4_db_user
-          POSTGRES_PASSWORD: tupassword
-          POSTGRES_DB: dockerra4_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U dockerra4_db_user -d dockerra4_db"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -36,24 +21,17 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Wait for Postgres
-        run: |
-          until pg_isready -h localhost -p 5432 -U dockerra4_db_user; do
-            echo "Waiting for Postgres..."
-            sleep 2
-          done
-
-      - name: Create table demogorgons
-        run: |
-          psql postgresql://dockerra4_db_user:tupassword@localhost:5432/dockerra4_db -c "
-            CREATE TABLE IF NOT EXISTS demogorgons (
-              id SERIAL PRIMARY KEY,
-              name VARCHAR(100),
-              level INT
-            );"
-
       - name: Run tests
         run: npm test
 
       - name: Build Docker image
         run: docker build -t jared/strangerthings:1.0 .
+
+      - name: Login DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Docker image
+        run: docker push jared/strangerthings:1.0

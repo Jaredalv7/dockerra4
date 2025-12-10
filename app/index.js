@@ -11,17 +11,32 @@ const port = process.env.PORT || 8080;
 const client = new Client({
   host: process.env.DB_HOST || "dpg-d4ssqc3e5dus73banhug-a.oregon-postgres.render.com",
   user: process.env.DB_USER || "dockerra4_db_user",
-  password: process.env.DB_PASS || "vaFKcVbTSM6E144pW1jdh7ToXHWflxTG", // Reemplaza con tu contraseña
+  password: process.env.DB_PASS || "vaFKcVbTSM6E144pW1jdh7ToXHWflxTG",
   database: process.env.DB_NAME || "dockerra4_db",
   port: process.env.DB_PORT || 5432,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
-client.connect()
-  .then(() => console.log("✅ Conexión a PostgreSQL exitosa."))
-  .catch(err => console.error("❌ Error conectando a la base de datos:", err));
+// Conectar y crear tabla automáticamente
+async function initDB() {
+  try {
+    await client.connect();
+    console.log("✅ Conexión a PostgreSQL exitosa.");
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS demogorgons (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100),
+        level INT
+      );
+    `);
+    console.log("✅ Tabla demogorgons lista.");
+  } catch (err) {
+    console.error("❌ Error conectando o creando tabla:", err);
+  }
+}
+
+initDB();
 
 app.set("db", client);
 
