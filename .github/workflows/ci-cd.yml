@@ -35,3 +35,5 @@ jobs:
 
       - name: Push Docker image
         run: docker push jaredalv7/mi-aplicacion-web:1.0
+
+
